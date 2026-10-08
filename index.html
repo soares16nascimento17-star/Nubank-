@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Nubank</title>
+
+    <!-- CONFIGURAÇÕES PWA (Para funcionar como App na tela inicial) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nubank">
+    <meta name="theme-color" content="#820AD1">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/f/f7/Nu_logo.svg">
+    <link rel="manifest" href="data:application/manifest+json;utf8,{
+        %22name%22:%22Nubank%22,
+        %22short_name%22:%22Nubank%22,
+        %22start_url%22:%22.%22,
+        %22display%22:%22standalone%22,
+        %22background_color%22:%22%23000000%22,
+        %22theme_color%22:%22%23820AD1%22,
+        %22icons%22:[{%22src%22:%22https://upload.wikimedia.org/wikipedia/commons/f/f7/Nu_logo.svg%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]
+    }">
+
+    <style>
+        :root {
+            --nu-purple: #820AD1;
+            --nu-bg: #000000;
+            --nu-card: #121212;
+            --nu-card-secondary: #1E1E1E;
+            --nu-text-main: #FFFFFF;
+            --nu-text-sub: #A1A1A1;
+            --nu-btn-gray: #262626;
+            --nu-green: #27A745;
+            --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --radius-card: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--nu-bg);
+            color: var(--nu-text-main);
+            overflow: hidden;
+        }
+
+        .app-shell {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--nu-bg);
+            position: relative;
+        }
+
+        /* --- TELA DE LOGIN --- */
+        .login-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--nu-purple);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: calc(env(safe-area-inset-top, 40px) + 20px) 24px calc(env(safe-area-inset-bottom, 20px) + 20px) 24px;
+            color: #FFF;
+        }
+
+        .nu-logo-svg {
+            width: 80px;
+            height: auto;
+            fill: #FFFFFF;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .login-sub {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 24px;
+        }
+
+        .pass-input {
+            width: 100%;
+            padding: 18px;
+            border-radius: 14px;
+            border: none;
+            font-size: 18px;
+            color: #111;
+            outline: none;
+            background: #FFF;
+            text-align: center;
+            letter-spacing: 4px;
+        }
+
+        /* --- HEADER NU --- */
+        .nu-header {
+            background-color: var(--nu-bg);
+            padding: calc(env(safe-area-inset-top, 20px) + 12px) 20px 10px 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-btn {
+            width: 48px;
+            height: 48px;
+            background-color: var(--nu-purple);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #FFF;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: #FFF;
+        }
+
+        /* --- CORPO ROLÁVEL --- */
+        .nu-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 16px 100px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .nu-body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .account-section {
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--nu-text-main);
+            margin-bottom: 6px;
+        }
+
+        .chevron {
+            color: var(--nu-text-sub);
+            font-size: 16px;
+        }
+
+        .card-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--nu-text-main);
+            letter-spacing: -0.5px;
+        }
+
+        /* ACTIONS SCROLL */
+        .actions-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 8px 0;
+        }
+
+        .actions-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 72px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .action-circle {
+            width: 60px;
+            height: 60px;
+            background-color: var(--nu-btn-gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .action-circle svg {
+            width: 24px;
+            height: 24px;
+            fill: #FFFFFF;
+        }
+
+        .action-badge {
+            position: absolute;
+            top: 48px;
+            background: var(--nu-purple);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .action-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--nu-text-main);
+            text-align: center;
+            line-height: 1.2;
+            margin-top: 4px;
+        }
+
+        /* MEUS CARTÕES */
+        .my-cards-btn {
+            background-color: var(--nu-btn-gray);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--nu-text-main);
+            cursor: pointer;
+        }
+
+        .my-cards-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #FFFFFF;
+        }
+
+        /* BLOCOS DE INFORMAÇÃO / CARDS */
+        .nu-card {
+            background: var(--nu-card);
+            border-radius: var(--radius-card);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        /* MENU INFERIOR FLUTUANTE */
+        .bottom-nav-container {
+            position: absolute;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .bottom-nav-pill {
+            pointer-events: auto;
+            background-color: rgba(30, 30, 30, 0.92);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .nav-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--nu-text-sub);
+            cursor: pointer;
+        }
+
+        .nav-btn.active {
+            background-color: var(--nu-purple);
+            color: #FFF;
+        }
+
+        .nav-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* --- MODAIS E SHEETS --- */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            display: none;
+            justify-content: flex-end;
+            flex-direction: column;
+        }
+
+        .sheet {
+            background-color: var(--nu-card);
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px 20px calc(env(safe-area-inset-bottom, 20px) + 20px) 20px;
+            max-height: 90%;
+            overflow-y: auto;
+            color: #FFF;
+            animation: slideUp 0.25s ease-out forwards;
+        }
+
+        .sheet-indicator {
+            width: 36px;
+            height: 5px;
+            background-color: #333;
+            border-radius: 3px;
+            margin: 0 auto 20px auto;
+        }
+
+        .sheet-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--nu-text-sub);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--nu-btn-gray);
+            border: 1px solid #333;
+            border-radius: 12px;
+            font-size: 16px;
+            color: #FFF;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .btn-main {
+            width: 100%;
+            background-color: var(--nu-purple);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-sub {
+            width: 100%;
+            background-color: var(--nu-btn-gray);
+            color: #FFF;
+            padding: 16px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* COMPROVANTE */
+        .receipt-card {
+            background-color: var(--nu-card-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .receipt-icon {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(39, 167, 69, 0.2);
+            color: var(--nu-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .receipt-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #2A2A2A;
+            font-size: 14px;
+        }
+
+        .receipt-line span:first-child { color: var(--nu-text-sub); }
+        .receipt-line span:last-child { font-weight: 600; color: #FFF; }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- TELA DE LOGIN COM A LOGO SOLICITADA -->
+    <div class="login-screen" id="login-screen">
+        <div>
+            <svg class="nu-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 18 72 L 18 42 C 18 28.5, 30.5 18, 44 18 C 57.5 18, 59 30, 59 42 L 59 72 L 42 72 L 42 42 C 42 35.5, 36.5 33, 33 33 C 28.5 33, 33 42, 33 42 L 33 72 Z" fill="#FFFFFF"/>
+                <path d="M 42 28 L 42 58 C 42 71.5, 54.5 82, 68 82 C 81.5 82, 83 70, 83 58 L 83 28 L 66 28 L 66 58 C 66 64.5, 60.5 67, 57 67 C 52.5 67, 57 58, 57 58 L 57 28 Z" fill="#FFFFFF" style="mix-blend-mode: screen; opacity: 0.95;"/>
+            </svg>
+        </div>
+        <div>
+            <div class="login-title" id="login-title-text">Acessar o aplicativo</div>
+            <div class="login-sub" id="login-sub-text">Digite sua senha de acesso</div>
+            <input type="password" class="pass-input" id="app-pass-input" placeholder="••••" maxlength="8">
+            <button class="btn-main" style="background: #FFF; color: var(--nu-purple); margin-top: 20px;" onclick="authenticateApp()">Entrar</button>
+        </div>
+        <div style="font-size: 12px; opacity: 0.7; text-align: center;">Segurança Nubank</div>
+    </div>
+
+    <!-- HEADER NU -->
+    <div class="nu-header">
+        <div class="header-top">
+            <div class="profile-btn" id="profile-avatar" onclick="openModal('edit-profile-modal')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleVisibility()">
+                    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+                <button class="icon-btn" onclick="lockApp()">
+                    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                </button>
+                <button class="icon-btn" onclick="openModal('edit-profile-modal')">
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CORPO ROLÁVEL -->
+    <div class="nu-body">
+        <div class="account-section" onclick="openModal('history-modal')">
+            <div class="card-row">
+                <span>Conta</span>
+                <span class="chevron">❯</span>
+            </div>
+            <div class="card-value" id="account-balance">R\$ 1.518,38</div>
+        </div>
+
+        <div class="actions-scroll">
+            <button class="action-item" onclick="openModal('pix-modal')">
+                <div class="action-circle">
+                    <svg viewBox="0 0 512 512"><path d="M112.56 122.07L256 265.51l143.44-143.44c12.28-12.28 32.19-12.28 44.47 0l22.24 22.24c12.28 12.28 12.28 32.19 0 44.47L322.71 332.22l143.44 143.44c12.28 12.28 12.28 32.19 0 44.47l-22.24 22.24c-12.28 12.28-32.19 12.28-44.47 0L256 398.93 112.56 542.37c-12.28 12.28-32.19 12.28-44.47 0l-22.24-22.24c-12.28-12.28-12.28-32.19 0-44.47l143.44-143.44L45.85 188.78c-12.28-12.28-12.28-32.19 0-44.47l22.24-22.24c12.28-12.28 32.19-12.28 44.47 0z"/></svg>
+                </div>
+                <div class="action-label">Área Pix</div>
+            </button>
+
+            <button class="action-item" onclick="openModal('card-modal')">
+                <div class="action-circle">
+                    <svg viewBox="0 0 24 24"><path d="M2 6h2v12H2zm3 0h1v12H5zm2 0h3v12H7zm4 0h1v12h-1zm3 0h2v12h-2zm3 0h1v12h-1zm2 0h3v12h-3z"/></svg>
+                </div>
+                <div class="action-label">Pagar</div>
+            </button>
+
+            <button class="action-item" onclick="openModal('loan-modal')">
+                <div class="action-circle">
+                    <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                </div>
+                <div class="action-badge">R\$50.000</div>
+                <div class="action-label">Pegar emprestado</div>
+            </button>
+
+            <button class="action-item" onclick="openModal('pix-modal')">
+                <div class="action-circle">
+                    <svg viewBox="0 0 24 24"><path d="M19 15l-6 6-1.42-1.42L15.17 16H4v-2h11.17l-3.59-3.58L13 9l6 6zM5 9l6-6 1.42 1.42L8.83 8H20v2H8.83l3.59 3.58L11 15 5 9z"/></svg>
+                </div>
+                <div class="action-label">Transferir</div>
+            </button>
+
+            <button class="action-item" onclick="depositMoney()">
+                <div class="action-circle">
+                    <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+                </div>
+                <div class="action-label">Recarga de celular</div>
+            </button>
+        </div>
+
+        <div class="my-cards-btn" onclick="openModal('card-modal')">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.11-.9-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+            <span>Meus cartões</span>
+        </div>
+
+        <div class="nu-card" onclick="openModal('card-modal')">
+            <div class="card-row">
+                <span>Cartão de crédito</span>
+                <span class="chevron">❯</span>
+            </div>
+            <div style="font-size: 13px; color: var(--nu-text-sub); margin-bottom: 4px;">Fatura atual</div>
+            <div class="card-value" id="invoice-amount" style="color: #FFF;">R\$ 16,44</div>
+            <div style="font-size: 13px; color: var(--nu-text-sub); margin-top: 4px;" id="limit-amount">Limite disponível de R\$ 983,56</div>
+        </div>
+
+        <div class="nu-card" onclick="openModal('loan-modal')">
+            <div class="card-row">
+                <span>Empréstimo</span>
+                <span class="chevron">❯</span>
+            </div>
+            <div style="font-size: 13px; color: var(--nu-text-sub); margin-bottom: 4px;">Valor disponível de até</div>
+            <div class="card-value" style="font-size: 18px; color: #FFF;">R\$ 50.000,00</div>
+        </div>
+    </div>
+
+    <!-- MENU FLUTUANTE INFERIOR -->
+    <div class="bottom-nav-container">
+        <div class="bottom-nav-pill">
+            <div class="nav-btn active">
+                <svg viewBox="0 0 24 24"><path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/></svg>
+            </div>
+            <div class="nav-btn" onclick="openModal('loan-modal')">
+                <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            </div>
+            <div class="nav-btn" onclick="openModal('card-modal')">
+                <svg viewBox="0 0 24 24"><path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIGURAÇÕES -->
+    <div class="modal-overlay" id="edit-profile-modal">
+        <div class="sheet">
+            <div class="sheet-indicator"></div>
+            <div class="sheet-title">Configurações Rápidas</div>
+            
+            <label class="field-label">NOME DO USUÁRIO</label>
+            <input type="text" class="field-input" id="edit-username-input">
+
+            <label class="field-label">SALDO EM CONTA (R\$)</label>
+            <input type="number" step="0.01" class="field-input" id="edit-balance-input">
+
+            <label class="field-label">ALTERAR SENHA</label>
+            <input type="password" class="field-input" id="edit-password-input" placeholder="Nova senha">
+
+            <label class="field-label">FOTO DE PERFIL</label>
+            <input type="file" class="field-input" id="edit-photo-input" accept="image/*">
+
+            <button class="btn-main" onclick="saveProfileChanges()">Salvar Alterações</button>
+            <button class="btn-sub" onclick="closeModal('edit-profile-modal')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL PIX -->
+    <div class="modal-overlay" id="pix-modal">
+        <div class="sheet">
+            <div class="sheet-indicator"></div>
+            <div class="sheet-title">Área Pix</div>
+            <input type="text" class="field-input" id="pix-key" placeholder="CPF, CNPJ, E-mail ou Celular">
+            <input type="number" class="field-input" id="pix-amount" placeholder="Valor (R\$)">
+            <button class="btn-main" onclick="executePix()">Transferir</button>
+            <button class="btn-sub" onclick="closeModal('pix-modal')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL EMPRÉSTIMO -->
+    <div class="modal-overlay" id="loan-modal">
+        <div class="sheet">
+            <div class="sheet-indicator"></div>
+            <div class="sheet-title">Empréstimo</div>
+            <p style="color: var(--nu-text-sub); font-size: 14px; margin-bottom: 16px;">Valor disponível: R\$ 50.000,00</p>
+            <input type="number" class="field-input" id="loan-amount" placeholder="Valor a simular">
+            <button class="btn-main" onclick="executeLoan()">Contratar</button>
+            <button class="btn-sub" onclick="closeModal('loan-modal')">Fechar</button>
+        </div>
+    </div>
+
+    <!-- MODAL CARTÃO -->
+    <div class="modal-overlay" id="card-modal">
+        <div class="sheet">
+            <div class="sheet-indicator"></div>
+            <div class="sheet-title">Cartão de Crédito</div>
+            <p style="font-size: 15px; margin-bottom: 8px;"><strong>Fatura Atual:</strong> <span id="modal-invoice">R\$ 16,44</span></p>
+            <button class="btn-main" onclick="payInvoice()">Pagar Fatura</button>
+            <button class="btn-sub" onclick="closeModal('card-modal')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- MODAL HISTÓRICO -->
+    <div class="modal-overlay" id="history-modal">
+        <div class="sheet">
+            <div class="sheet-indicator"></div>
+            <div class="sheet-title">Histórico da Conta</div>
+            <div id="history-list" style="font-size: 14px; color: var(--nu-text-main); line-height: 2;"></div>
+            <button class="btn-sub" style="margin-top: 20px;" onclick="closeModal('history-modal')">Fechar</button>
+        </div>
+    </div>
+
+    <!-- MODAL COMPROVANTE -->
+    <div class="modal-overlay" id="receipt-modal">
+        <div class="sheet">
+            <div class="sheet-indicator"></div>
+            <div class="receipt-card">
+                <div class="receipt-icon">✓</div>
+                <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;" id="receipt-type-title">Comprovante de Transferência</div>
+                <div style="font-size: 12px; color: var(--nu-text-sub); margin-bottom: 20px;" id="receipt-date-time">00/00/0000 - 00:00</div>
+
+                <div class="receipt-line">
+                    <span>Valor</span>
+                    <span id="receipt-value">R\$ 0,00</span>
+                </div>
+                <div class="receipt-line">
+                    <span>Destino</span>
+                    <span id="receipt-target">--</span>
+                </div>
+                <div class="receipt-line">
+                    <span>Origem</span>
+                    <span id="receipt-origin">Conta Nubank</span>
+                </div>
+            </div>
+            <button class="btn-main" onclick="closeModal('receipt-modal')">Concluir</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let state = {
+        appPassword: "",
+        userName: "Usuário",
+        profileImg: "",
+        balance: 1518.38,
+        invoice: 16.44,
+        creditLimit: 983.56,
+        hideBalance: false,
+        history: [
+            "Transferência enviada Pix: R\$ 20,00",
+            "Compra no cartão: R\$ 16,44"
+        ]
+    };
+
+    function initPasswordState() {
+        const savedPass = localStorage.getItem('nu_app_pass');
+        if (!savedPass) {
+            document.getElementById('login-title-text').innerText = "Crie sua Senha";
+            document.getElementById('login-sub-text').innerText = "Escolha uma senha para proteger seu app";
+        } else {
+            state.appPassword = savedPass;
+        }
+    }
+
+    function authenticateApp() {
+        const inputPass = document.getElementById('app-pass-input').value;
+        const savedPass = localStorage.getItem('nu_app_pass');
+
+        if (!savedPass) {
+            if (inputPass.length < 4) {
+                alert("A senha deve ter no mínimo 4 caracteres.");
+                return;
+            }
+            localStorage.setItem('nu_app_pass', inputPass);
+            state.appPassword = inputPass;
+            document.getElementById('login-screen').style.display = 'none';
+        } else {
+            if (inputPass === savedPass) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-pass-input').value = "";
+            } else {
+                alert("Senha incorreta!");
+            }
+        }
+    }
+
+    function lockApp() {
+        document.getElementById('app-pass-input').value = "";
+        document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    function formatBRL(value) {
+        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function updateUI() {
+        const avatarElem = document.getElementById('profile-avatar');
+        if (state.profileImg) {
+            avatarElem.style.backgroundImage = `url('${state.profileImg}')`;
+            avatarElem.innerHTML = "";
+        }
+
+        const valBalance = state.hideBalance ? "•••••" : formatBRL(state.balance);
+        const valInvoice = state.hideBalance ? "•••••" : formatBRL(state.invoice);
+
+        document.getElementById('account-balance').innerText = valBalance;
+        document.getElementById('invoice-amount').innerText = valInvoice;
+        document.getElementById('limit-amount').innerText = `Limite disponível de ${formatBRL(state.creditLimit)}`;
+        document.getElementById('modal-invoice').innerText = formatBRL(state.invoice);
+
+        const historyElem = document.getElementById('history-list');
+        historyElem.innerHTML = state.history.map(item => `• ${item}`).join('<br>');
+    }
+
+    function saveProfileChanges() {
+        const newName = document.getElementById('edit-username-input').value;
+        const newBalance = parseFloat(document.getElementById('edit-balance-input').value);
+        const newPassword = document.getElementById('edit-password-input').value;
+        const photoInput = document.getElementById('edit-photo-input');
+
+        if (newName.trim() !== "") state.userName = newName.trim();
+        if (!isNaN(newBalance) && newBalance >= 0) state.balance = newBalance;
+        if (newPassword.trim() !== "") {
+            localStorage.setItem('nu_app_pass', newPassword.trim());
+            state.appPassword = newPassword.trim();
+        }
+
+        if (photoInput.files && photoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                state.profileImg = e.target.result;
+                updateUI();
+            };
+            reader.readAsDataURL(photoInput.files[0]);
+        }
+
+        updateUI();
+        closeModal('edit-profile-modal');
+    }
+
+    function showReceipt(typeTitle, value, targetKey) {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('pt-BR') + ' - ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+        document.getElementById('receipt-type-title').innerText = typeTitle;
+        document.getElementById('receipt-date-time').innerText = dateStr;
+        document.getElementById('receipt-value').innerText = formatBRL(value);
+        document.getElementById('receipt-target').innerText = targetKey;
+        document.getElementById('receipt-origin').innerText = `${state.userName} (Conta Nubank)`;
+
+        openModal('receipt-modal');
+    }
+
+    function toggleVisibility() {
+        state.hideBalance = !state.hideBalance;
+        updateUI();
+    }
+
+    function openModal(id) {
+        if (id === 'edit-profile-modal') {
+            document.getElementById('edit-username-input').value = state.userName;
+            document.getElementById('edit-balance-input').value = state.balance;
+        }
+        document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function depositMoney() {
+        const val = parseFloat(prompt("Valor a depositar (R\$):"));
+        if (!isNaN(val) && val > 0) {
+            state.balance += val;
+            state.history.unshift(`Depósito recebido: ${formatBRL(val)}`);
+            updateUI();
+            showReceipt("Comprovante de Depósito", val, "Sua Conta Nubank");
+        }
+    }
+
+    function executePix() {
+        const amount = parseFloat(document.getElementById('pix-amount').value);
+        const key = document.getElementById('pix-key').value;
+
+        if (!key || isNaN(amount) || amount <= 0 || amount > state.balance) return;
+
+        state.balance -= amount;
+        state.history.unshift(`Pix enviado: ${formatBRL(amount)}`);
+        updateUI();
+        closeModal('pix-modal');
+        showReceipt("Comprovante de Pix enviado", amount, key);
+    }
+
+    function executeLoan() {
+        const amount = parseFloat(document.getElementById('loan-amount').value);
+        if (isNaN(amount) || amount <= 0) return;
+
+        state.balance += amount;
+        state.history.unshift(`Empréstimo: ${formatBRL(amount)}`);
+        updateUI();
+        closeModal('loan-modal');
+        showReceipt("Comprovante de Empréstimo", amount, "Crédito em Conta Nubank");
+    }
+
+    function payInvoice() {
+        if (state.invoice === 0 || state.balance < state.invoice) return;
+
+        const amountPaid = state.invoice;
+        state.balance -= amountPaid;
+        state.creditLimit += amountPaid;
+        state.history.unshift(`Pagamento de fatura: ${formatBRL(amountPaid)}`);
+        state.invoice = 0;
+        updateUI();
+        closeModal('card-modal');
+        showReceipt("Comprovante de Fatura", amountPaid, "Cartão Nubank");
+    }
+
+    // Registo do Service Worker PWA para suporte offline
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+            self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+            self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+
+    initPasswordState();
+    updateUI();
+</script>
+
+</body>
+</html>
